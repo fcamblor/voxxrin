@@ -1,5 +1,7 @@
 var request = require('request'),
     Q = require('q'),
+    fs = require('fs'),
+    stringify = require('json-stringify-safe'),
     token = require('./authorizationToken');
 
 module.exports = function(options, data) {
@@ -16,6 +18,10 @@ module.exports = function(options, data) {
         if (!error && response.statusCode == 200) {
             deferred.resolve(body);
         } else {
+            fs.appendFile(
+                "/tmp/crawler.log",
+                "Send error on ["+options.method+" "+options.url+"] and data : "+stringify(data, null, 2),
+                function(err) { if(err) throw err; });
             deferred.reject({f:'send', error: error, response: response, options: options});
         }
     });
