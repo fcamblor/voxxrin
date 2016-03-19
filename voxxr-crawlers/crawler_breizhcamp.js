@@ -25,8 +25,7 @@ module.exports = new VoxxrinCrawler({
             'Track4': 'Amphi D',
             'Track5 (labs)': 'Esp. Lab.',
             'Track6': 'Hall'
-
-        }
+        };
         try {
 
             _(speakers).each(function(speaker) {
@@ -39,10 +38,12 @@ module.exports = new VoxxrinCrawler({
                     __firstName: speaker.firstname,
                     __lastName: speaker.lastname,
                     __company: speaker.company
-                }
+                };
                 speakersByName[sp.name] = sp;
             });
 
+            var unknownSpeakers = [];
+            var unknownSpeakerId = 2048;
             _(schedules).each(function (schedule) {
 
                 var talkId = schedule.id;
@@ -64,12 +65,22 @@ module.exports = new VoxxrinCrawler({
                     __summary: md(schedule.description),
                     __track: schedule.venue,
                     speakers: _(schedule.speakers.split(", ")).map(function (speakerName) {
-                        return speakersByName[speakerName]
+                        if(!speakersByName[speakerName]) {
+                            unknownSpeakers.push(speakerName);
+                        }
+
+                        return speakersByName[speakerName] || {
+                            id: unknownSpeakerId++,
+                            name: '???'+speakerName+'???'
+                        };
                     }),
                 };
                 talks.push(talk);
-
             });
+
+            if(unknownSpeakers.length) {
+                console.error("UNKNOWN SPEAKERS : "+unknownSpeakers.join(", "));
+            }
         }catch(e){
             console.error(e);
         }
