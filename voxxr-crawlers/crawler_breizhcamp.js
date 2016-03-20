@@ -26,6 +26,7 @@ module.exports = new VoxxrinCrawler({
             'Track5 (labs)': 'Esp. Lab.',
             'Track6': 'Hall'
         };
+        
         try {
 
             _(speakers).each(function(speaker) {
@@ -54,6 +55,20 @@ module.exports = new VoxxrinCrawler({
                 }
 
                 talkIds.push(talkId);
+                
+                var speakers = [];
+                if (schedule.speakers && schedule.speakers.length > 0) {
+                    speakers = _(schedule.speakers.split(", ")).map(function (speakerName) {
+                        if(!speakersByName[speakerName]) {
+                            unknownSpeakers.push(speakerName);
+                        }
+                        return speakersByName[speakerName] || {
+                            id: unknownSpeakerId++,
+                            name: '???'+speakerName+'???'
+                        };
+                    });
+                }
+                
                 var talk = {
                     id: talkId,
                     title: schedule.name,
@@ -64,16 +79,7 @@ module.exports = new VoxxrinCrawler({
                     roomName: rooms[schedule.venue],
                     __summary: md(schedule.description),
                     __track: schedule.venue,
-                    speakers: _(schedule.speakers.split(", ")).map(function (speakerName) {
-                        if(!speakersByName[speakerName]) {
-                            unknownSpeakers.push(speakerName);
-                        }
-
-                        return speakersByName[speakerName] || {
-                            id: unknownSpeakerId++,
-                            name: '???'+speakerName+'???'
-                        };
-                    }),
+                    speakers: speakers,
                 };
                 talks.push(talk);
             });
